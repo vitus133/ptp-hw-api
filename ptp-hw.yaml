@@ -61,55 +61,42 @@ components:
 
     Condition:
       type: object
+      required:
+        - name
+        - sources
+        - desiredStates
       properties:
         name:
           type: string
           description: Human-readable condition name
-        expression:
-          oneOf:
-            - $ref: '#/components/schemas/SourceCondition'
-            - $ref: '#/components/schemas/LogicalExpression'
-          description: Condition expression - either a single source condition or a logical combination of multiple conditions
+        sources:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - sourceName
+              - conditionType
+            properties:
+              sourceName:
+                type: string
+                description: Name of the source being evaluated
+              conditionType:
+                type: string
+                enum: ["default", "locked", "lost"]
+                description: The state condition of the source
+          description: |
+            Array of source conditions that must ALL be true (implicit AND operation).
+            The first condition in the array is the Triggering Condition, while all otherrs are Supporting Conditions (that must be true for 
+            the desired states to be applied). For example, if two different subsystems have two different sources, there is still only
+            one subsystem that will activate holdover if all other sources are lost.
+
         desiredStates:
           type: array
           items:
             $ref: '#/components/schemas/DesiredState'
           description: A list of actions to be performed (in the order they are listed) when the condition is triggered
-
-    SourceCondition:
-      type: object
-      required:
-        - sourceName
-        - conditionType
-      properties:
-        sourceName:
-          type: string
-          description: Name of the source being evaluated
-        conditionType:
-          type: string
-          enum: ["default", "locked", "lost"]
-          description: The state condition of the source
-      description: Represents a single source condition (e.g., "source A is locked")
-
-    LogicalExpression:
-      type: object
-      required:
-        - operator
-        - conditions
-      properties:
-        operator:
-          type: string
-          enum: ["AND", "OR", "NOT"]
-          description: Logical operator to combine conditions
-        conditions:
-          type: array
-          minItems: 1
-          items:
-            oneOf:
-              - $ref: '#/components/schemas/SourceCondition'
-              - $ref: '#/components/schemas/LogicalExpression'
-          description: List of conditions to be combined with the logical operator
-      description: Represents a logical combination of multiple conditions (e.g., "A is locked AND B is lost")
+      description: Condition that evaluates an array of sources with implicit AND logic between them
             
     DesiredState:
       type: object
@@ -123,7 +110,8 @@ components:
           type: string
           description: |
             Board label and clock ID together unambiguously identify the subsystem and the DPLL pin, together with an optional external
-            connector, if defined
+            connector, if defined.
+            If the pin is routed through an external connector, the connector settings (direction, frequency, etc.) are derived from the pin configuration
         eec:
           $ref: '#/components/schemas/PinState'
         pps:
@@ -138,7 +126,7 @@ components:
         state:
           type: string
           enum: ["connected", "disconnected", "selectable"]
-          description: Pin output desired state
+          description: Pin desired state (for input pins should be always set to "selectable")
 
       
     SourceConfig:
@@ -154,10 +142,10 @@ components:
           example: "5799633565432596414 or 0xaabbccfffeddeeff"
         sourceType:
           type: string
-          enum: ["ptpTimeReceiver", "gnss", "phase", "frequency"]
+          enum: ["ptpTimeReceiver", "gnss"]
           description: |
             Identifies the source type. If sourceType is ptpTimeReceiver, ptpTimeReceivers must be specified.
-            In all cases, boardLabel must be specified. 
+            In all cases, boardLabel must be specified.
         boardLabel:
           type: string
           description: |
@@ -332,10 +320,13 @@ components:
           - "ens4f1"
         conditions:
         - name: "Default Configuration"
-          expression:
-            sourceName: "Default on profile (re)load"
+          sources:
+          - sourceName: "Default on profile (re)load"
             conditionType: "default"
           desiredStates:
+          # define all the default pin settings and connector settings. If the pin is set to disconnected, or priority to 255,
+          # and it has an associated connector and MUX, these will be disabled to as well
+          # This is just an example:
           - clockId: "0x112233fffe445566"
             boardLabel: "REF0"
             eec:
@@ -354,11 +345,12 @@ components:
               priority: 255
             pps:
               priority: 255
+          # continue the default pin settings for all the other pins
+
         - name: "GNSS Active, Ethernet don't care"
-          expression:
-            conditions:
-            - sourceName: "GNSS"
-              conditionType: "locked"
+          sources:
+          - sourceName: "GNSS"
+            conditionType: "locked"
           desiredStates:
           - clockId: "0x112233fffe445566"
             boardLabel: "REF3"
@@ -373,13 +365,11 @@ components:
             pps:
               priority: 255
         - name: "GNSS Lost, Fallback to Ethernet"
-          expression:
-            operator: "AND"
-            conditions:
-            - sourceName: "GNSS"
-              conditionType: "lost"
-            - sourceName: "Ethernet"
-              conditionType: "locked"
+          sources:
+          - sourceName: "GNSS"
+            conditionType: "lost"
+          - sourceName: "Ethernet"
+            conditionType: "locked"
           desiredStates:
           - clockId: "0xc7cc7cfffe001122"
             boardLabel: "REF0"
@@ -393,7 +383,22 @@ components:
               priority: 255
             pps:
               priority: 255 
-   
+        - name: "GNSS subsystem holdover"
+          sources:
+          - sourceName: "GNSS"
+            conditionType: "lost"
+          - sourceName: "Ethernet"
+            conditionType: "lost"
+          # GNSS lost is the triggering condition, Ethernet lost is a supporting condition. Configure GNSS DPLL as the holdover source
+          desiredStates: [] 
+        - name: "Ethernet subsystem holdover"
+          sources:
+          - sourceName: "Ethernet"
+            conditionType: "lost"
+          - sourceName: "GNSS"
+            conditionType: "lost"
+          # Ethernet lost is the triggering condition, GNSS lost is a supporting condition. Configure Ethernet DPLL as the holdover source
+          desiredStates: [] 
 
       structure:
       - name: Subsystem1
