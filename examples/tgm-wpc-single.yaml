@@ -1,0 +1,10 @@
+structure:
+- name: WPC GM single card
+  ethernet:
+  - ports: ["ens4f0"]
+  dpll: 
+    phaseInputs:
+      GNSS_1PPS:
+        frequency: 1
+        phaseAdjustment:
+          internal: 7000

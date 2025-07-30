@@ -1,0 +1,26 @@
+structure:
+- name: WPC GM leader SMA1 output
+  ethernet:
+  - ports: ["ens4f0"]
+  dpll: 
+    phaseInputs:
+      GNSS_1PPS:
+        frequency: 1
+        phaseAdjustment:
+          internal: 7000
+    phaseOutputs:
+      REF_SMA1:
+        frequency: 1
+        connector: SMA1  # This will be used by the plugin to configure the MUX logic
+        phaseAdjustment:
+          internal: 2323
+          external: 12344 # covers cable and the input side of the next card, which is not programmable
+
+- name: WPC follower through SMA1
+  ethernet:
+  - ports: ["ens7f0"]
+  dpll:
+    phaseInputs:
+      SMA1:
+        frequency: 1
+        connector: SMA1        

@@ -1,0 +1,34 @@
+commonDefinitions:
+  eSyncDefinitions:
+  - name: "10MHz-1PPS"
+    esyncConfig:
+      transferFrequency: 10000000
+      embeddedSyncFrequency: 1
+structure:
+- name: WPC GM leader SMA1 output
+  ethernet:
+  - ports: ["ens4f0"]
+  dpll: 
+    phaseInputs:
+      GNSS_1PPS:
+        frequency: 1
+        phaseAdjustment:
+          internal: 7000
+    phaseOutputs:
+      REF_SMA1:
+        eSyncConfigName: "10MHz-1PPS"
+        # This will be used by the plugin to configure the MUX logic
+        connector: SMA1  
+        phaseAdjustment:
+          internal: 2323
+          # covers cable and the input side of the next card, which is not programmable
+          external: 12344 
+
+- name: WPC follower through SMA1
+  ethernet:
+  - ports: ["ens7f0"]
+  dpll:
+    phaseInputs:
+      SMA1:
+        eSyncConfigName: "10MHz-1PPS"
+        connector: SMA1        

@@ -95,7 +95,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DesiredState'
-          description: A list of actions to be performed (in the order they are listed) when the condition is triggered
+          description: A list of pin and connector settings that together define the desired state. The configurations 
+          are applied (in the order they are listed) when the condition is triggered.
       description: Condition that evaluates an array of sources with implicit AND logic between them
             
     DesiredState:
@@ -119,6 +120,11 @@ components:
             
     PinState:
       type: object
+      description: |
+        Pin desired state.
+        Input pins are controlled through priority.
+        Output pins are controlled through state.
+        Connectors, if referenced in pin config, are automatically set to the same state and frequency as the pin.
       properties:
         priority:
           type: number
@@ -126,8 +132,7 @@ components:
         state:
           type: string
           enum: ["connected", "disconnected", "selectable"]
-          description: Pin desired state (for input pins should be always set to "selectable")
-
+          description: Pin desired state 
       
     SourceConfig:
       type: object
@@ -250,8 +255,14 @@ components:
         description:
           type: string
           description: Optional description for this pin configuration
-      
-      description: Pin configuration for DPLL phase or frequency signals when used in dictionary format (boardLabel is the key)
+      not:
+        allOf:
+          - required: [frequency]
+          - required: [eSyncConfigName]
+      description: |
+        Pin configuration for DPLL phase or frequency signals in a dictionary format 
+        (boardLabel is the key). 
+        The frequency and eSyncConfigName properties are mutually exclusive.
 
     ESyncConfig:
       type: object

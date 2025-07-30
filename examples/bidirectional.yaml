@@ -1,0 +1,204 @@
+commonDefinitions:
+  eSyncDefinitions:
+  - name: esync1
+    esyncConfig:
+      transferFrequency: 10000000
+      embeddedSyncFrequency: 16
+      dutyCyclePct: 25
+behavior:
+  sources:
+  - name: GNSS
+    clockId: "0x112233fffe445566"
+    sourceType: "gnss"
+    boardLabel: "REF3"
+  - name: Ethernet
+    clockId: "0xc7cc7cfffe001122"
+    sourceType: "ptpTimeReceiver"
+    boardLabel: "REF0"
+    ptpTimeReceivers:
+    - "ens4f0"
+    - "ens4f1"
+  conditions:
+  - name: "Default Configuration"
+    sources:
+    - sourceName: "Default on profile (re)load"
+      conditionType: "default"
+    desiredStates:
+    # define all the default pin settings and connector settings. If the pin is set to disconnected, or priority to 255,
+    # and it has an associated connector and MUX, these will be disabled as well
+    # This is just an example:
+    - clockId: "0x112233fffe445566"
+      boardLabel: "REF0"
+      eec:
+        priority: 255
+      pps:
+        priority: 255
+    - clockId: "0x112233fffe445566"
+      boardLabel: "REF1"
+      eec:
+        priority: 3
+      pps:
+        priority: 255 
+    - clockId: "0x112233fffe445566"
+      boardLabel: "REF2"
+      eec:
+        priority: 255
+      pps:
+        priority: 255
+    # continue the default pin settings for all the other pins
+
+  - name: "GNSS Active, Ethernet don't care"
+    sources:
+    - sourceName: "GNSS"
+      conditionType: "locked"
+    desiredStates:
+    - clockId: "0x112233fffe445566"
+      boardLabel: "REF3"
+      eec:
+        priority: 1
+      pps:
+        priority: 1
+    - clockId: "0xc7cc7cfffe001122"
+      boardLabel: "REF0"
+      eec:
+        priority: 10
+      pps:
+        priority: 255
+  - name: "GNSS Lost, Fallback to Ethernet"
+    sources:
+    - sourceName: "GNSS"
+      conditionType: "lost"
+    - sourceName: "Ethernet"
+      conditionType: "locked"
+    desiredStates:
+    - clockId: "0xc7cc7cfffe001122"
+      boardLabel: "REF0"
+      eec:
+        priority: 1
+      pps:
+        priority: 1
+    - clockId: "0x112233fffe445566"
+      boardLabel: "REF3"
+      eec:
+        priority: 255
+      pps:
+        priority: 255 
+  - name: "GNSS subsystem holdover"
+    sources:
+    - sourceName: "GNSS"
+      conditionType: "lost"
+    - sourceName: "Ethernet"
+      conditionType: "lost"
+    # GNSS lost is the triggering condition, Ethernet lost is a supporting condition. Configure GNSS DPLL as the holdover source
+    desiredStates: [] 
+  - name: "Ethernet subsystem holdover"
+    sources:
+    - sourceName: "Ethernet"
+      conditionType: "lost"
+    - sourceName: "GNSS"
+      conditionType: "lost"
+    # Ethernet lost is the triggering condition, GNSS lost is a supporting condition. Configure Ethernet DPLL as the holdover source
+    desiredStates: [] 
+
+structure:
+- name: Subsystem1
+  ethernet:
+  - ports: ["ens4f0", "ens4f1", "ens4f2", "ens4f3"]
+  dpll:
+    clockId: "0xc7cc7cfffe001122"
+    phaseInputs:
+      REF0:
+        frequency: 16
+        description: From Ethernet SDP: no ESync, no compensation
+      REF2:
+        connector: SMA2
+        eSyncConfigName: esync1
+        phaseAdjustment:
+          internal: 1323
+          external: 20000
+          description: From Subsystem 2 to SMA2 to MUX to REF2
+    frequencyInputs:
+      REF1:
+        frequency: 156250000
+        description: SyncE recovered clock
+    phaseOutputs:
+      OUT0:
+        frequency: 16
+        description: to Ethernet SDP in case of holdover
+      OUT2:
+        connector: SMA2
+        eSyncConfigName: esync1
+        phaseAdjustment:
+          internal: 2321
+        description: To Subsystem2 when boundary clock is up and GNSS is down
+      OUT4:
+        connector: SMA1
+        phaseAdjustment:
+          internal: 2321
+        frequency: 1
+    frequencyOutputs:
+      OUT3:
+        frequency: 10000000
+      OUT1:
+        frequency: 156250000
+
+- name: Subsystem2
+  ethernet:
+  - ports: ["ens2f0", "ens2f1", "ens5f0", "ens5f1"]
+  dpll:
+    clockId: "0x112233fffe445566"
+    phaseInputs:
+      REF3:
+        connector: SMA6
+        description: 2 PPS input from GNSS
+        frequency: 2
+        phaseAdjustment:
+          internal: 7676
+          description: GNSS module is on'board, compensates for the routing. No external compensation
+      REF2:
+        connector: SMA4
+        description: Input from subsystem 1 when operating as a boundary clock
+        eSyncConfigName: esync1
+        phaseAdjustment:
+          internal: 2323
+          external: 20000
+          description: From Subsystem 1 to SMA4 to MUX to REF2
+    phaseOutputs:
+      OUT2:
+        connector: SMA4
+        description: Output to subsystem 1 when operating as a grandmaster
+        eSyncConfigName: esync1
+        phaseAdjustment:
+          internal: 3232
+          description: From OUT2 to MUX to SMA4
+      OUT3:
+        connector: SMA9
+        description: Output to subsystem 3 (no ESync, as DPLL is not configurable)
+        phaseAdjustment:
+          internal: 3003
+          external: 12002
+          description: the external covers both the cable and subsystem 3 internal delays
+    frequencyInputs:
+      REF4:
+        connector: SMA7
+        description: 10MHz input from GNSS
+        frequency: 10000000
+      REF5:
+        connector: SMA9
+        frequency: 10000000
+        description: External clock
+      
+- name: Subsystem3
+  ethernet:
+  - ports: ["enp0s0", "enp1s1"]
+  dpll:
+    clockId: "0xc7cbadfffebadd0d"
+    phaseInputs:
+      REF2:
+        connector: SMA10
+    phaseOutputs:
+      OUT0:
+        frequency: 1
+    frequencyOutputs:
+      OUT1:
+        frequency: 10000000
