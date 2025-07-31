@@ -154,7 +154,7 @@ structure:
         frequency: 2
         phaseAdjustment:
           internal: 7676
-          description: "GNSS module is on'board, compensates for the routing. No external compensation"
+          description: "GNSS module is on-board, compensates for the routing. No external compensation"
       REF2:
         connector: SMA4
         description: "Input from subsystem 1 when operating as a boundary clock"

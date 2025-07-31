@@ -189,7 +189,7 @@ type DPLL struct {
 	FrequencyOutputs map[string]PinConfig `yaml:"frequencyOutputs,omitempty"`
 }
 
-// Ethernet defines the Ethernet subsystem and unambiguously identifies ethernet ports belonging to it.
+// Ethernet defines the Ethernet subsystem and unambiguously identifies Ethernet ports belonging to it.
 // This may be required to support various port naming schemes.
 type Ethernet struct {
 	// Ports is a list of Ethernet port names associated with this Ethernet subsystem.
@@ -227,7 +227,7 @@ type PinConfig struct {
 // will be summed with the internal delays and applied to the output side.
 type PhaseAdjustment struct {
 	// Internal is the internal phase adjustment in picoseconds (required).
-	// Usually compensates for the board hardware delays and should not be changed by user.
+	// Usually compensates for the board hardware delays and should not be changed by the user.
 	Internal int `yaml:"internal"`
 
 	// External is the external phase adjustment in picoseconds.

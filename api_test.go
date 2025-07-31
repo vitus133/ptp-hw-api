@@ -50,7 +50,7 @@ structure:
 	t.Logf("   Clock ID: %s", subsystem.DPLL.ClockID)
 
 	if len(subsystem.Ethernet) == 0 {
-		t.Fatal("Expected at least one ethernet configuration")
+		t.Fatal("Expected at least one Ethernet configuration")
 	}
 
 	t.Logf("   Ethernet ports: %v", subsystem.Ethernet[0].Ports)
@@ -249,9 +249,9 @@ func testExampleFile(t *testing.T, filePath string) {
 			t.Logf("⚠️  Subsystem %d in %s has no name", i+1, fileName)
 		}
 
-		// Verify ethernet configurations exist
+		// Verify Ethernet configurations exist
 		if len(subsystem.Ethernet) == 0 {
-			t.Logf("⚠️  Subsystem %s in %s has no ethernet configurations", subsystem.Name, fileName)
+			t.Logf("⚠️  Subsystem %s in %s has no Ethernet configurations", subsystem.Name, fileName)
 		}
 
 		// Check for common DPLL configurations
