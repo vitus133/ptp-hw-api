@@ -1,0 +1,45 @@
+# Git
+.git
+.gitignore
+
+# Build artifacts
+bin/
+*.exe
+*.so
+*.dylib
+
+# Test coverage
+coverage.out
+coverage.html
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+README*
+
+# Development files
+Makefile
+.dockerignore
+Dockerfile
+
+# Test files (optional - remove this line if you want tests in the container)
+*_test.go
+validate.go
+test_simple.go
+
+# Go build cache
+.cache/
+
+# Temporary files
+*.tmp
+*.temp
