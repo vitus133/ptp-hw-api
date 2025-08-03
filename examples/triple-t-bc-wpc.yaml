@@ -13,7 +13,7 @@ structure:
   dpll: 
     clockId: "0x112233fffe445566"
     phaseInputs:
-      CVL_SDP2:
+      CVL_SDP22:
         frequency: 1
         description: PTP time receiver input
     phaseOutputs:
