@@ -50,39 +50,38 @@ behavior:
     - sourceName: "PTP"
       conditionType: "locked"
     desiredStates:
-    # PTP source is active - enable leader input
+    # PTP source is active - enable leader input, disable output
     - clockId: "0x112233fffe445566"
       boardLabel: "CVL_SDP22"
       eec:
-        priority: 0
+        priority: 255
       pps:
         priority: 0
-
+    - clockId: "0x112233fffe445566"
+      boardLabel: "CVL_SDP23"
+      eec:
+        state: "disconnected"
+      pps:
+        state: "disconnected"
 
   - name: "PTP Lost - Leader Holdover"
     sources:
     - sourceName: "PTP"
       conditionType: "lost"
     desiredStates:
-    # PTP lost - leader enters holdover, followers continue following leader
+    # PTP lost - leader enters holdover
     - clockId: "0x112233fffe445566"
-      boardLabel: "CVL_SDP2"
+      boardLabel: "CVL_SDP22"
       eec:
         priority: 255
       pps:
         priority: 255
-    - clockId: "0xc7cc7cfffe001122"
-      boardLabel: "SMA1"
+   - clockId: "0x112233fffe445566"
+      boardLabel: "CVL_SDP23"
       eec:
-        priority: 1
+        state: "connected"
       pps:
-        priority: 1
-    - clockId: "0xaabbccfffe334455"
-      boardLabel: "SMA1"
-      eec:
-        priority: 1
-      pps:
-        priority: 1
+        state: "connected"
 
 structure:
 - name: TGM WPC leader with dual esync outputs
