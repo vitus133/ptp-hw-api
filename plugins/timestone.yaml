@@ -1,0 +1,43 @@
+# TimeStone Hardware Plugin Default Configuration  
+# More permissive approach for follower subsystems
+
+pluginInfo:
+  name: "timestone"
+  description: "TimeStone Synchronization Hardware"
+  version: "1.0.0"
+  vendor: "TimeStone"
+
+# Specific pin defaults for TimeStone hardware
+specificDefaults:
+  # REF0 - primary ethernet reference
+  REF0:
+    eec:
+      priority: 3   # Medium priority for ethernet sync
+    pps:
+      priority: 255 # PPS typically disabled for ethernet
+      
+  # REF2 - esync input from other subsystems
+  REF2:
+    eec:
+      priority: 1   # High priority for esync input
+    pps:
+      priority: 1   # High priority for esync input
+      
+  # SMA connector inputs - ready to receive
+  SMA1:
+    eec:
+      priority: 1   # Ready for high-quality external signals
+    pps:
+      priority: 1   # Ready for PPS signals
+      
+  SMA2:
+    eec:
+      priority: 2   # Secondary priority
+    pps:
+      priority: 2   # Secondary priority
+
+behaviorNotes: |
+  TimeStone permissive defaults:
+  - Input pins enabled with priorities ready to accept signals
+  - Suitable for complex timing hierarchies
+  - Designed for follower subsystems in multi-tier topologies

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -39,6 +40,35 @@ func main() {
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		fmt.Printf("Error parsing YAML: %v\n", err)
 		os.Exit(1)
+	}
+
+	// Load hardware plugins and apply defaults
+	pluginManager, err := NewPluginManager("plugins")
+	if err != nil {
+		fmt.Printf("Warning: Failed to load plugins: %v\n", err)
+		fmt.Println("Continuing without plugin defaults...")
+	} else {
+		fmt.Printf("Loaded %d hardware plugins: %v\n", len(pluginManager.ListPlugins()), pluginManager.ListPlugins())
+
+		// Apply plugin defaults to user configuration
+		if err := pluginManager.MergeUserConfigWithDefaults(&config); err != nil {
+			fmt.Printf("Error applying plugin defaults: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println("Successfully applied hardware plugin defaults")
+
+		// Output the merged configuration
+		fmt.Println("\n" + strings.Repeat("=", 60))
+		fmt.Println("MERGED CONFIGURATION (User Config + Plugin Defaults)")
+		fmt.Println(strings.Repeat("=", 60))
+
+		mergedYAML, err := yaml.Marshal(&config)
+		if err != nil {
+			fmt.Printf("Warning: Failed to marshal merged config: %v\n", err)
+		} else {
+			fmt.Printf("%s\n", string(mergedYAML))
+		}
+		fmt.Println(strings.Repeat("=", 60))
 	}
 
 	// Validate

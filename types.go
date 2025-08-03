@@ -162,6 +162,9 @@ type Subsystem struct {
 	// Name is a human-readable identifier for this subsystem
 	Name string `yaml:"name"`
 
+	// HardwarePlugin is the hardware-specific plugin identifier that handles default configurations
+	HardwarePlugin string `yaml:"hardwarePlugin,omitempty"`
+
 	// DPLL contains the DPLL configuration for this subsystem
 	DPLL DPLL `yaml:"dpll"`
 
@@ -414,6 +417,44 @@ func (cc *ClockChain) String() string {
 }
 
 func (s *Subsystem) String() string {
-	return fmt.Sprintf("Subsystem %s (Clock ID: %s, Ethernet Ports: %d)",
-		s.Name, s.DPLL.ClockID, len(s.Ethernet))
+	plugin := s.HardwarePlugin
+	if plugin == "" {
+		plugin = "default"
+	}
+	return fmt.Sprintf("Subsystem %s (Plugin: %s, Clock ID: %s, Ethernet Ports: %d)",
+		s.Name, plugin, s.DPLL.ClockID, len(s.Ethernet))
+}
+
+// Plugin system types and functions
+
+// PluginInfo contains metadata about a hardware plugin
+type PluginInfo struct {
+	Name        string `yaml:"name"`
+	Description string `yaml:"description"`
+	Version     string `yaml:"version"`
+	Vendor      string `yaml:"vendor"`
+}
+
+// PluginPinDefaults defines default pin configurations for a hardware plugin
+type PluginPinDefaults struct {
+	Priority *float64 `yaml:"priority,omitempty"`
+	State    string   `yaml:"state,omitempty"`
+}
+
+// PluginSpecificDefaults defines specific pin overrides for common pin names
+type PluginSpecificDefaults map[string]struct {
+	EEC *PluginPinDefaults `yaml:"eec,omitempty"`
+	PPS *PluginPinDefaults `yaml:"pps,omitempty"`
+}
+
+// HardwarePluginConfig represents a complete hardware plugin configuration file
+type HardwarePluginConfig struct {
+	PluginInfo       PluginInfo             `yaml:"pluginInfo"`
+	SpecificDefaults PluginSpecificDefaults `yaml:"specificDefaults,omitempty"`
+	BehaviorNotes    string                 `yaml:"behaviorNotes,omitempty"`
+}
+
+// PluginManager handles loading and applying hardware plugin defaults
+type PluginManager struct {
+	plugins map[string]*HardwarePluginConfig
 }

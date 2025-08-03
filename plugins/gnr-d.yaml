@@ -1,0 +1,51 @@
+# GNR-D Hardware Plugin Default Configuration
+# GNSS-optimized configuration for grandmaster roles
+
+pluginInfo:
+  name: "gnr-d"  
+  description: "GNR-D GNSS Reference Hardware"
+  version: "1.0.0"
+  vendor: "GNSS Systems"
+
+# Specific pin defaults for GNR-D GNSS focus
+specificDefaults:
+  # REF3 - primary GNSS input
+  REF3:
+    eec:
+      priority: 1   # Highest priority for GNSS frequency
+    pps:
+      priority: 1   # Highest priority for GNSS PPS
+      
+  # REF4 - GNSS 10MHz input
+  REF4:
+    eec:
+      priority: 1   # High priority for GNSS frequency
+    pps:
+      priority: 255 # PPS not used on frequency input
+      
+  # REF2 - backup/secondary input (esync from other subsystems)
+  REF2:
+    eec:
+      priority: 10  # Lower priority backup
+    pps:
+      priority: 10  # Lower priority backup
+      
+  # Output pins for distribution
+  OUT2:
+    eec:
+      priority: 0   # Primary output
+    pps:
+      priority: 0   # Primary output
+      
+  OUT3:
+    eec:
+      priority: 0   # Secondary output  
+    pps:
+      priority: 0   # Secondary output
+
+behaviorNotes: |
+  GNR-D GNSS-optimized defaults:
+  - GNSS inputs (REF3, REF4) have highest priority
+  - Output pins enabled for timing distribution to other subsystems
+  - Designed for grandmaster role in timing hierarchies
+  - Supports both PPS and frequency distribution

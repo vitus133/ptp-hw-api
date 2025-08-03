@@ -1,0 +1,25 @@
+# Intel E810 Hardware Plugin Default Configuration
+# Conservative approach: Most pins disabled by default for safety
+
+pluginInfo:
+  name: "e810"
+  description: "Intel E810 Network Adapter with Time Synchronization"
+  version: "1.0.0"
+  vendor: "Intel"
+
+# Specific pin defaults for common E810 configurations
+specificDefaults:
+  # Common PTP receiver input from SDP
+  CVL_SDP22:
+    eec:
+      priority: 255  # Disabled until explicitly enabled
+    pps:
+      priority: 255  # Disabled until explicitly enabled
+      
+  # GNSS input typically disabled on E810 (not common)
+  GNSS_1PPS:
+    eec:
+      priority: 0
+    pps:
+      priority: 0
+      
