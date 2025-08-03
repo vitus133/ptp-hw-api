@@ -1,8 +1,16 @@
+behavior:
+  sources:
+  - name: GNSS
+    clockId: "0x112233fffe445566"
+    sourceType: "gnss"
+    boardLabel: "GNSS_1PPS"
+
 structure:
 - name: WPC GM single card
   ethernet:
   - ports: ["ens4f0"]
   dpll: 
+    clockId: "0x112233fffe445566"
     phaseInputs:
       GNSS_1PPS:
         frequency: 1

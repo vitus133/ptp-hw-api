@@ -4,11 +4,20 @@ commonDefinitions:
     esyncConfig:
       transferFrequency: 10000000
       embeddedSyncFrequency: 1
+
+behavior:
+  sources:
+  - name: GNSS
+    clockId: "0x112233fffe445566"
+    sourceType: "gnss"
+    boardLabel: "GNSS_1PPS"
+
 structure:
 - name: WPC GM leader SMA1 output
   ethernet:
   - ports: ["ens4f0"]
   dpll: 
+    clockId: "0x112233fffe445566"
     phaseInputs:
       GNSS_1PPS:
         frequency: 1
@@ -28,6 +37,7 @@ structure:
   ethernet:
   - ports: ["ens7f0"]
   dpll:
+    clockId: "0xc7cc7cfffe001122"
     phaseInputs:
       SMA1:
         eSyncConfigName: "10MHz-1PPS"
