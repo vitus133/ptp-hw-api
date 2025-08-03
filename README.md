@@ -18,9 +18,9 @@ This tool parses, validates, and merges PTP configuration files written in YAML 
 
 Current hardware plugins include:
 
-- **Intel E810** (`e810.yaml`) - Intel E810 Network Adapter with Time Synchronization
-- **Intel GNR-D** (`gnr-d.yaml`) - Intel GNR-D platform
-- **Timestone** (`timestone.yaml`) - Timestone hardware platform
+- **Intel E810** (`e810.yaml`) - Intel E810 Network Adapter with Time Synchronization (real)
+- **Intel GNR-D** (`gnr-d.yaml`) - Intel GNR-D platform (real, but names and capabilities here are fictional)
+- **Timestone** (`timestone.yaml`) - Timestone hardware platform (fictional)
 
 ## Installation & Usage
 
