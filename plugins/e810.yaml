@@ -7,19 +7,59 @@ pluginInfo:
   version: "1.0.0"
   vendor: "Intel"
 
-# Specific pin defaults for common E810 configurations
 specificDefaults:
-  # Common PTP receiver input from SDP
-  CVL_SDP22:
-    eec:
-      priority: 255  # Disabled until explicitly enabled
-    pps:
-      priority: 255  # Disabled until explicitly enabled
-      
-  # GNSS input typically disabled on E810 (not common)
   GNSS_1PPS:
     eec:
       priority: 0
     pps:
       priority: 0
-      
+
+  SMA1:
+    eec:
+      priority: 3
+    pps:
+      priority: 3
+
+  SMA2:
+    eec:
+      priority: 2
+    pps:
+      priority: 2
+
+  CVL_SDP20:
+    eec:
+      priority: 255
+    pps:
+      priority: 4
+
+  CVL_SDP22:
+    eec:
+      priority: 255
+    pps:
+      priority: 5
+
+  CVL_SDP21:
+    eec:
+      state: "disconnected"
+    pps:
+      state: "connected"
+
+  CVL_SDP23:
+    eec:
+      state: "disconnected"
+    pps:
+      state: "connected"
+
+  C827_0-RCLKA:
+    eec:
+      priority: 8
+    pps:
+      priority: 8
+
+  C827_0-RCLKB:
+    eec:
+      priority: 9
+    pps:
+      priority: 9
+
+ 

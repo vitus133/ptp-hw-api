@@ -124,29 +124,42 @@ func (pm *PluginManager) ApplyPluginDefaults(clockChain *ClockChain, condition *
 }
 
 // applySubsystemDefaults applies plugin defaults for a specific subsystem
+// Uses a base configuration approach: all plugin defaults are applied first,
+// then user config can overlay/override specific settings
 func (pm *PluginManager) applySubsystemDefaults(
 	subsystem Subsystem,
 	plugin *HardwarePluginConfig,
 	existingStates map[string]*DesiredState,
 	desiredStates *[]DesiredState,
 ) error {
-	// Helper function to apply defaults for a pin if not already specified by user
-	applyPinDefaults := func(boardLabel string) {
+	// Apply defaults for ALL pins defined in the plugin, not just those in user config
+	// This creates a base configuration that user config can then overlay
+	for boardLabel, specificDefaults := range plugin.SpecificDefaults {
 		key := subsystem.DPLL.ClockID + ":" + boardLabel
 
-		// Skip if user has already specified this pin
-		if existingStates[key] != nil {
-			return
-		}
+		// Check if user has already specified this pin
+		if existingState, exists := existingStates[key]; exists {
+			// User has specified this pin - merge/overlay user settings on top of plugin defaults
+			// User settings take precedence, but we fill in missing fields with plugin defaults
+			if existingState.EEC == nil && specificDefaults.EEC != nil {
+				existingState.EEC = &PinState{
+					Priority: specificDefaults.EEC.Priority,
+					State:    specificDefaults.EEC.State,
+				}
+			}
+			if existingState.PPS == nil && specificDefaults.PPS != nil {
+				existingState.PPS = &PinState{
+					Priority: specificDefaults.PPS.Priority,
+					State:    specificDefaults.PPS.State,
+				}
+			}
+		} else {
+			// User has not specified this pin - create new state with plugin defaults
+			newState := DesiredState{
+				ClockID:    subsystem.DPLL.ClockID,
+				BoardLabel: boardLabel,
+			}
 
-		// Create new desired state with plugin defaults
-		newState := DesiredState{
-			ClockID:    subsystem.DPLL.ClockID,
-			BoardLabel: boardLabel,
-		}
-
-		// Check for specific defaults for this pin
-		if specificDefaults, exists := plugin.SpecificDefaults[boardLabel]; exists {
 			if specificDefaults.EEC != nil {
 				newState.EEC = &PinState{
 					Priority: specificDefaults.EEC.Priority,
@@ -159,30 +172,13 @@ func (pm *PluginManager) applySubsystemDefaults(
 					State:    specificDefaults.PPS.State,
 				}
 			}
-		} else {
-			// No specific defaults for this pin - skip it
-			return
-		}
 
-		// Add the new state if we created any pin configurations
-		if newState.EEC != nil || newState.PPS != nil {
-			*desiredStates = append(*desiredStates, newState)
-			existingStates[key] = &(*desiredStates)[len(*desiredStates)-1]
+			// Add the new state if we created any pin configurations
+			if newState.EEC != nil || newState.PPS != nil {
+				*desiredStates = append(*desiredStates, newState)
+				existingStates[key] = &(*desiredStates)[len(*desiredStates)-1]
+			}
 		}
-	}
-
-	// Apply defaults for all pins in the subsystem
-	for boardLabel := range subsystem.DPLL.PhaseInputs {
-		applyPinDefaults(boardLabel)
-	}
-	for boardLabel := range subsystem.DPLL.PhaseOutputs {
-		applyPinDefaults(boardLabel)
-	}
-	for boardLabel := range subsystem.DPLL.FrequencyInputs {
-		applyPinDefaults(boardLabel)
-	}
-	for boardLabel := range subsystem.DPLL.FrequencyOutputs {
-		applyPinDefaults(boardLabel)
 	}
 
 	return nil
@@ -193,6 +189,32 @@ func (pm *PluginManager) applySubsystemDefaults(
 func (pm *PluginManager) MergeUserConfigWithDefaults(clockChain *ClockChain) error {
 	if clockChain.Behavior == nil {
 		return nil // No behavior section, nothing to merge
+	}
+
+	// Check if there's already a default condition
+	hasDefaultCondition := false
+	for _, condition := range clockChain.Behavior.Conditions {
+		if len(condition.Sources) > 0 && condition.Sources[0].ConditionType == "default" {
+			hasDefaultCondition = true
+			break
+		}
+	}
+
+	// If no default condition exists, create one with plugin defaults
+	if !hasDefaultCondition {
+		defaultCondition := Condition{
+			Name: "Default Configuration (Auto-generated)",
+			Sources: []SourceState{
+				{
+					SourceName:    "Default on profile (re)load",
+					ConditionType: "default",
+				},
+			},
+			DesiredStates: []DesiredState{}, // Will be populated by ApplyPluginDefaults
+		}
+
+		// Add the default condition to the beginning of the conditions list
+		clockChain.Behavior.Conditions = append([]Condition{defaultCondition}, clockChain.Behavior.Conditions...)
 	}
 
 	// Apply plugin defaults to each condition

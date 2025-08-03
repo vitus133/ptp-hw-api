@@ -65,48 +65,15 @@ behavior:
     ptpTimeReceivers:
     - "ens4f0"
   conditions:
-  - name: "Default Configuration"
+  - name: "PTP Init"
     sources:
-    - sourceName: "Default on profile (re)load"
-      conditionType: "default"
     desiredStates:
-    # Default pin settings - leader input and GNSS disabled, followers connected
-    - clockId: "0x112233fffe445566"
-      boardLabel: "CVL_SDP22"
-      eec:
-        priority: 255
-      pps:
-        priority: 255
     - clockId: "0x112233fffe445566"
       boardLabel: "GNSS_1PPS"
       eec:
         priority: 255
       pps:
         priority: 255
-    - clockId: "0xc7cc7cfffe001122"
-      boardLabel: "GNSS_1PPS"
-      eec:
-        priority: 255
-      pps:
-        priority: 255
-    - clockId: "0xc7cc7cfffe001122"
-      boardLabel: "SMA1"
-      eec:
-        priority: 0
-      pps:
-        priority: 0
-    - clockId: "0xaabbccfffe334455"
-      boardLabel: "GNSS_1PPS"
-      eec:
-        priority: 255
-      pps:
-        priority: 255
-    - clockId: "0xaabbccfffe334455"
-      boardLabel: "SMA1"
-      eec:
-        priority: 0
-      pps:
-        priority: 0
 
   - name: "PTP Active"
     sources:

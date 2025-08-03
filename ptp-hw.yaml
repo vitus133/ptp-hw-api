@@ -37,8 +37,10 @@ components:
           type: object
           description: |
             Defines the system behavior based on synchronization sources, conditions and associated actions. The conditions for 
-            the sources can be "default", "locked" or "hold". 
-            The "default" condition initializes the hardware in each subsystem to allow the "Acquiring" state. 
+            the sources can be "default", "init", "locked" or "hold". 
+            The "default" condition initializes the hardware in each subsystem to the manufacturer recommended defaults for the 
+            automatic mode. The "init" condition initializes the hardware in each subsystem to allow the "Acquiring" state (for example
+            disable GNSS in the boundary clock setups). 
             Bidirectional links between different subsystems can remain disconnected, as the desired link
             direction is still unknown.
             The "locked" condition in one of the subsystems will configure the bidirectional links to be disciplined by the 
@@ -83,7 +85,7 @@ components:
                 description: Name of the source being evaluated
               conditionType:
                 type: string
-                enum: ["default", "locked", "lost"]
+                enum: ["default", "init", "locked", "lost"]
                 description: The state condition of the source
           description: |
             Array of source conditions that must ALL be true (implicit AND operation).
