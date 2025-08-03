@@ -7,6 +7,7 @@ behavior:
 
 structure:
 - name: WPC GM single card
+  hardwarePlugin: "e810"
   ethernet:
   - ports: ["ens4f0"]
   dpll: 

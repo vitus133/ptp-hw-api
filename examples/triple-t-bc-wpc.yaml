@@ -85,6 +85,7 @@ behavior:
 
 structure:
 - name: TGM WPC leader with dual esync outputs
+  hardwarePlugin: "e810"
   ethernet:
   - ports: ["ens4f0"]
   dpll: 
@@ -110,6 +111,7 @@ structure:
         description: ESync output to follower 2
 
 - name: WPC follower 1 through SMA1 from SMA1
+  hardwarePlugin: "e810"
   ethernet:
   - ports: ["ens7f0"]
   dpll:
@@ -121,6 +123,7 @@ structure:
         description: ESync input from leader
 
 - name: WPC follower 2 through SMA1 from SMA2
+  hardwarePlugin: "e810"
   ethernet:
   - ports: ["ens8f0"]
   dpll:

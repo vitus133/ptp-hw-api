@@ -14,6 +14,7 @@ behavior:
 
 structure:
 - name: WPC GM leader SMA1 output
+  hardwarePlugin: "e810"
   ethernet:
   - ports: ["ens4f0"]
   dpll: 
@@ -34,6 +35,7 @@ structure:
           external: 12344 
 
 - name: WPC follower through SMA1
+  hardwarePlugin: "e810"
   ethernet:
   - ports: ["ens7f0"]
   dpll:
