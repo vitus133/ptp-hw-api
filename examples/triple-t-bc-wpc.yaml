@@ -1,0 +1,63 @@
+commonDefinitions:
+  eSyncDefinitions:
+  - name: "10MHz-1PPS"
+    esyncConfig:
+      transferFrequency: 10000000
+      embeddedSyncFrequency: 1
+
+behavior:
+  sources:
+  - name: PTP
+    clockId: "0x112233fffe445566"
+    sourceType: "ptpTimeReceiver"
+    boardLabel: "CVL_SDP22"
+    ptpTimeReceivers:
+    - "ens4f0"
+
+structure:
+- name: TGM WPC leader with dual esync outputs
+  ethernet:
+  - ports: ["ens4f0"]
+  dpll: 
+    clockId: "0x112233fffe445566"
+    phaseInputs:
+      CVL_SDP2:
+        frequency: 1
+        description: PTP time receiver input
+    phaseOutputs:
+      REF-SMA1:
+        eSyncConfigName: "10MHz-1PPS"
+        connector: SMA1  
+        phaseAdjustment:
+          internal: 2323
+          external: 12000
+        description: ESync output to follower 1
+      REF-SMA2/U.FL2:
+        eSyncConfigName: "10MHz-1PPS"
+        connector: SMA2  
+        phaseAdjustment:
+          internal: 1212
+          external: 12000
+        description: ESync output to follower 2
+
+- name: WPC follower 1 through SMA1 from SMA1
+  ethernet:
+  - ports: ["ens7f0"]
+  dpll:
+    clockId: "0xc7cc7cfffe001122"
+    phaseInputs:
+      SMA1:
+        eSyncConfigName: "10MHz-1PPS"
+        connector: SMA1
+        description: ESync input from leader
+
+- name: WPC follower 2 through SMA1 from SMA2
+  ethernet:
+  - ports: ["ens8f0"]
+  dpll:
+    clockId: "0xaabbccfffe334455"
+    phaseInputs:
+      SMA1:
+        eSyncConfigName: "10MHz-1PPS"
+        connector: SMA1
+        description: ESync input from leader
