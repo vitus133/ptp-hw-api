@@ -146,7 +146,7 @@ The `examples/` directory contains various deployment scenarios:
 - **`tgm-wpc-single.yaml`** - Single card WPC Grandmaster
 - **`dual-wpc.yaml`** - Dual WPC setup
 - **`triple-t-bc-wpc.yaml`** - Triple T-BC WPC configuration
-- **`bidirectional.yaml`** - Bidirectional synchronization setup
+- **`bidirectional.yaml`** - [Bidirectional synchronization setup](examples/bidirectional.png)
 - **`dual-wpc-esync.yaml`** - Dual WPC with eSync outputs
 
 ## How It Works
