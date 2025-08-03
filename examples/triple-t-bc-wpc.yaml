@@ -13,6 +13,76 @@ behavior:
     boardLabel: "CVL_SDP22"
     ptpTimeReceivers:
     - "ens4f0"
+  conditions:
+  - name: "Default Configuration"
+    sources:
+    - sourceName: "Default on profile (re)load"
+      conditionType: "default"
+    desiredStates:
+    # Default pin settings - leader input and GNSS disabled, followers connected
+    - clockId: "0x112233fffe445566"
+      boardLabel: "CVL_SDP22"
+      eec:
+        priority: 255
+      pps:
+        priority: 255
+    - clockId: "0x112233fffe445566"
+      boardLabel: "GNSS_1PPS"
+      eec:
+        priority: 255
+      pps:
+        priority: 255
+    - clockId: "0xc7cc7cfffe001122"
+      boardLabel: "SMA1"
+      eec:
+        priority: 0
+      pps:
+        priority: 0
+    - clockId: "0xaabbccfffe334455"
+      boardLabel: "SMA1"
+      eec:
+        priority: 0
+      pps:
+        priority: 0
+
+  - name: "PTP Active"
+    sources:
+    - sourceName: "PTP"
+      conditionType: "locked"
+    desiredStates:
+    # PTP source is active - enable leader input
+    - clockId: "0x112233fffe445566"
+      boardLabel: "CVL_SDP22"
+      eec:
+        priority: 0
+      pps:
+        priority: 0
+
+
+  - name: "PTP Lost - Leader Holdover"
+    sources:
+    - sourceName: "PTP"
+      conditionType: "lost"
+    desiredStates:
+    # PTP lost - leader enters holdover, followers continue following leader
+    - clockId: "0x112233fffe445566"
+      boardLabel: "CVL_SDP2"
+      eec:
+        priority: 255
+      pps:
+        priority: 255
+    - clockId: "0xc7cc7cfffe001122"
+      boardLabel: "SMA1"
+      eec:
+        priority: 1
+      pps:
+        priority: 1
+    - clockId: "0xaabbccfffe334455"
+      boardLabel: "SMA1"
+      eec:
+        priority: 1
+      pps:
+        priority: 1
 
 structure:
 - name: TGM WPC leader with dual esync outputs
