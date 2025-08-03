@@ -4,85 +4,7 @@ commonDefinitions:
     esyncConfig:
       transferFrequency: 10000000
       embeddedSyncFrequency: 1
-
-behavior:
-  sources:
-  - name: PTP
-    clockId: "0x112233fffe445566"
-    sourceType: "ptpTimeReceiver"
-    boardLabel: "CVL_SDP22"
-    ptpTimeReceivers:
-    - "ens4f0"
-  conditions:
-  - name: "Default Configuration"
-    sources:
-    - sourceName: "Default on profile (re)load"
-      conditionType: "default"
-    desiredStates:
-    # Default pin settings - leader input and GNSS disabled, followers connected
-    - clockId: "0x112233fffe445566"
-      boardLabel: "CVL_SDP22"
-      eec:
-        priority: 255
-      pps:
-        priority: 255
-    - clockId: "0x112233fffe445566"
-      boardLabel: "GNSS_1PPS"
-      eec:
-        priority: 255
-      pps:
-        priority: 255
-    - clockId: "0xc7cc7cfffe001122"
-      boardLabel: "SMA1"
-      eec:
-        priority: 0
-      pps:
-        priority: 0
-    - clockId: "0xaabbccfffe334455"
-      boardLabel: "SMA1"
-      eec:
-        priority: 0
-      pps:
-        priority: 0
-
-  - name: "PTP Active"
-    sources:
-    - sourceName: "PTP"
-      conditionType: "locked"
-    desiredStates:
-    # PTP source is active - enable leader input, disable output
-    - clockId: "0x112233fffe445566"
-      boardLabel: "CVL_SDP22"
-      eec:
-        priority: 255
-      pps:
-        priority: 0
-    - clockId: "0x112233fffe445566"
-      boardLabel: "CVL_SDP23"
-      eec:
-        state: "disconnected"
-      pps:
-        state: "disconnected"
-
-  - name: "PTP Lost - Leader Holdover"
-    sources:
-    - sourceName: "PTP"
-      conditionType: "lost"
-    desiredStates:
-    # PTP lost - leader enters holdover
-    - clockId: "0x112233fffe445566"
-      boardLabel: "CVL_SDP22"
-      eec:
-        priority: 255
-      pps:
-        priority: 255
-   - clockId: "0x112233fffe445566"
-      boardLabel: "CVL_SDP23"
-      eec:
-        state: "connected"
-      pps:
-        state: "connected"
-
+      dutyCyclePct: 25
 structure:
 - name: TGM WPC leader with dual esync outputs
   hardwarePlugin: "e810"
@@ -133,3 +55,94 @@ structure:
         eSyncConfigName: "10MHz-1PPS"
         connector: SMA1
         description: ESync input from leader
+
+behavior:
+  sources:
+  - name: PTP
+    clockId: "0x112233fffe445566"
+    sourceType: "ptpTimeReceiver"
+    boardLabel: "CVL_SDP22"
+    ptpTimeReceivers:
+    - "ens4f0"
+  conditions:
+  - name: "Default Configuration"
+    sources:
+    - sourceName: "Default on profile (re)load"
+      conditionType: "default"
+    desiredStates:
+    # Default pin settings - leader input and GNSS disabled, followers connected
+    - clockId: "0x112233fffe445566"
+      boardLabel: "CVL_SDP22"
+      eec:
+        priority: 255
+      pps:
+        priority: 255
+    - clockId: "0x112233fffe445566"
+      boardLabel: "GNSS_1PPS"
+      eec:
+        priority: 255
+      pps:
+        priority: 255
+    - clockId: "0xc7cc7cfffe001122"
+      boardLabel: "GNSS_1PPS"
+      eec:
+        priority: 255
+      pps:
+        priority: 255
+    - clockId: "0xc7cc7cfffe001122"
+      boardLabel: "SMA1"
+      eec:
+        priority: 0
+      pps:
+        priority: 0
+    - clockId: "0xaabbccfffe334455"
+      boardLabel: "GNSS_1PPS"
+      eec:
+        priority: 255
+      pps:
+        priority: 255
+    - clockId: "0xaabbccfffe334455"
+      boardLabel: "SMA1"
+      eec:
+        priority: 0
+      pps:
+        priority: 0
+
+  - name: "PTP Active"
+    sources:
+    - sourceName: "PTP"
+      conditionType: "locked"
+    desiredStates:
+    # PTP source is active - enable leader input, disable output
+    - clockId: "0x112233fffe445566"
+      boardLabel: "CVL_SDP22"
+      eec:
+        priority: 255
+      pps:
+        priority: 0
+    - clockId: "0x112233fffe445566"
+      boardLabel: "CVL_SDP23"
+      eec:
+        state: "disconnected"
+      pps:
+        state: "disconnected"
+
+  - name: "PTP Lost - Leader Holdover"
+    sources:
+    - sourceName: "PTP"
+      conditionType: "lost"
+    desiredStates:
+    # PTP lost - leader enters holdover
+    - clockId: "0x112233fffe445566"
+      boardLabel: "CVL_SDP22"
+      eec:
+        priority: 255
+      pps:
+        priority: 255
+    - clockId: "0x112233fffe445566"
+      boardLabel: "CVL_SDP23"
+      eec:
+        state: "connected"
+      pps:
+        state: "connected"
+

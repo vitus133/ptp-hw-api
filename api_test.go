@@ -188,6 +188,9 @@ func testExampleFile(t *testing.T, filePath string) {
 
 	// Step 2: Parse YAML
 	var config ClockChain
+	if fileName == "triple-t-bc-wpc.yaml" {
+		t.Logf("Breakpoint here")
+	}
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		t.Logf("⚠️  YAML parsing failed for %s: %v", fileName, err)
 		t.Logf("   This might be due to syntax issues in the example file")
