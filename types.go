@@ -40,6 +40,12 @@ type CommonDefinitions struct {
 	// ESyncDefinitions is an array of named eSync configurations that can be referenced
 	// by name from pin configurations throughout the system.
 	ESyncDefinitions []ESyncDefinition `yaml:"eSyncDefinitions,omitempty"`
+
+	// RefSyncDefinitions is an array of named reference sync configurations that can be
+	// referenced by name from pin configurations throughout the system.
+	// A ref-sync configuration typically ties a reference sync definition to a specific
+	// related pin or board label.
+	RefSyncDefinitions []RefSyncDefinition `yaml:"refSyncDefinitions,omitempty"`
 }
 
 // ESyncDefinition defines a named eSync configuration that can be referenced by name from pin configurations.
@@ -49,6 +55,17 @@ type ESyncDefinition struct {
 
 	// ESyncConfig contains the eSync feature configuration parameters
 	ESyncConfig ESyncConfig `yaml:"esyncConfig"`
+}
+
+// RefSyncDefinition defines a named reference sync configuration that can be
+// referenced by name from pin configurations. It optionally relates to a specific
+// pin board label.
+type RefSyncDefinition struct {
+	// Name is a unique identifier for this ref-sync configuration
+	Name string `yaml:"name"`
+
+	// RelatedPinBoardLabel is an optional label for a related pin/board
+	RelatedPinBoardLabel string `yaml:"relatedPinBoardLabel,omitempty"`
 }
 
 // ESyncConfig represents eSync feature configuration.
@@ -201,7 +218,7 @@ type Ethernet struct {
 }
 
 // PinConfig represents pin configuration for DPLL phase or frequency signals in a dictionary format
-// (boardLabel is the key). The frequency and eSyncConfigName properties are mutually exclusive.
+// (boardLabel is the key). The frequency and syncTechnologyConfigName properties are mutually exclusive.
 type PinConfig struct {
 	// Connector is an optional identifier on the device (e.g., "SMA1", "U.FL2").
 	// Defines the physical connector this pin is statically or dynamically routed to.
@@ -212,12 +229,13 @@ type PinConfig struct {
 	PhaseAdjustment *PhaseAdjustment `yaml:"phaseAdjustment,omitempty"`
 
 	// Frequency is the frequency value in Hz (for frequency pins) or phase reference frequency
-	// (for phase pins, defaults to 1 PPS). Mutually exclusive with eSyncConfigName.
+	// (for phase pins, defaults to 1 PPS). Mutually exclusive with syncTechnologyConfigName.
 	Frequency *float64 `yaml:"frequency,omitempty"`
 
-	// ESyncConfigName is an optional eSync configuration name (defined in CommonDefinitions).
+	// SyncTechnologyConfigName is an optional synchronization technology configuration name
+	// (defined in CommonDefinitions). It can refer to either an eSync or a ref-sync definition.
 	// Mutually exclusive with frequency.
-	ESyncConfigName string `yaml:"eSyncConfigName,omitempty"`
+	SyncTechnologyConfigName string `yaml:"syncTechnologyConfigName,omitempty"`
 
 	// Description is an optional description for this pin configuration
 	Description string `yaml:"description,omitempty"`
@@ -265,10 +283,10 @@ func ValidateAlphanumDash(value string) error {
 	return nil
 }
 
-// ValidatePinConfig ensures frequency and eSyncConfigName are mutually exclusive
+// ValidatePinConfig ensures frequency and syncTechnologyConfigName are mutually exclusive
 func (pc *PinConfig) Validate() error {
-	if pc.Frequency != nil && pc.ESyncConfigName != "" {
-		return fmt.Errorf("frequency and eSyncConfigName are mutually exclusive")
+	if pc.Frequency != nil && pc.SyncTechnologyConfigName != "" {
+		return fmt.Errorf("frequency and syncTechnologyConfigName are mutually exclusive")
 	}
 
 	if pc.Connector != "" {
@@ -310,14 +328,27 @@ func (cc *ClockChain) Validate() error {
 	clockIDs := make(map[string]bool)
 	sourceNames := make(map[string]bool)
 	esyncNames := make(map[string]bool)
+	refsyncNames := make(map[string]bool)
 
 	// Collect eSync definition names
 	if cc.CommonDefinitions != nil {
 		for _, esync := range cc.CommonDefinitions.ESyncDefinitions {
+			if esync.Name == "" {
+				return fmt.Errorf("eSync definition name must not be empty")
+			}
 			if esyncNames[esync.Name] {
 				return fmt.Errorf("duplicate eSync definition name: %s", esync.Name)
 			}
 			esyncNames[esync.Name] = true
+		}
+		for _, refsync := range cc.CommonDefinitions.RefSyncDefinitions {
+			if refsync.Name == "" {
+				return fmt.Errorf("refSync definition name must not be empty")
+			}
+			if refsyncNames[refsync.Name] {
+				return fmt.Errorf("duplicate refSync definition name: %s", refsync.Name)
+			}
+			refsyncNames[refsync.Name] = true
 		}
 	}
 
@@ -350,10 +381,10 @@ func (cc *ClockChain) Validate() error {
 				return fmt.Errorf("invalid pin config %s in subsystem %s: %w", label, subsystem.Name, err)
 			}
 
-			// Check if referenced eSync config exists
-			if config.ESyncConfigName != "" && !esyncNames[config.ESyncConfigName] {
-				return fmt.Errorf("referenced eSync config %s not found in subsystem %s, pin %s",
-					config.ESyncConfigName, subsystem.Name, label)
+			// Check if referenced sync technology config exists (either eSync or ref-sync)
+			if config.SyncTechnologyConfigName != "" && !esyncNames[config.SyncTechnologyConfigName] && !refsyncNames[config.SyncTechnologyConfigName] {
+				return fmt.Errorf("referenced sync technology config %s not found in subsystem %s, pin %s",
+					config.SyncTechnologyConfigName, subsystem.Name, label)
 			}
 		}
 	}

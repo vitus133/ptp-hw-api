@@ -17,6 +17,15 @@ components:
             they can be referenced in the relevant entities by name, to avoid multiple copies
           type: object
           properties:
+            refSyncDefinitions:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  relatedPinBoardLabel:
+                    type: string
             eSyncDefinitions:
               type: array
               items:
@@ -250,21 +259,17 @@ components:
           description: Frequency value in Hz (for frequency pins) or phase reference frequency (for phase pins, defaults to 1 PPS)
           example: 10000000
         
-        eSyncConfigName:
+        syncTechnologyConfigName:
           type: string
-          description: Optional eSync configuration name (defined in CommonDefinitions)
+          description: Optional eSync or ref-sync configuration name (defined in CommonDefinitions)
           
         description:
           type: string
           description: Optional description for this pin configuration
-      not:
-        allOf:
-          - required: [frequency]
-          - required: [eSyncConfigName]
       description: |
         Pin configuration for DPLL phase or frequency signals in a dictionary format 
         (boardLabel is the key). 
-        The frequency and eSyncConfigName properties are mutually exclusive.
+        The frequency and eSync should not be configured together.
 
     ESyncConfig:
       type: object
