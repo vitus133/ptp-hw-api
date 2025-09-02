@@ -285,6 +285,13 @@ components:
         description:
           type: string
           description: Optional description for this pin configuration
+
+        referenceSync:
+          type: string
+          description: |
+            Applies only to frequency input pins. The value must be a phase pin label within the same
+            subsystem (from phaseInputs or phaseOutputs) that this frequency input pin references for
+            phase pairing. Not supported on frequency output pins.
       description: |
         Pin configuration for DPLL phase or frequency signals in a dictionary format 
         (boardLabel is the key). 

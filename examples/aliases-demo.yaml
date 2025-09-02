@@ -40,6 +40,10 @@ structure:
       SMA1:
         syncTechnologyConfigName: "10MHz-1PPS"
         connector: SMA1
+    frequencyInputs:
+      REF1:
+        frequency: 10000000
+        referenceSync: SMA1  # pair this frequency input to the SMA1 phase input
 
 behavior:
   sources:

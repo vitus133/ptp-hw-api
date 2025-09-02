@@ -254,6 +254,10 @@ type PinConfig struct {
 
 	// Description is an optional description for this pin configuration
 	Description string `yaml:"description,omitempty"`
+
+	// ReferenceSync applies to frequency pins that can be paired to a phase pin by board label
+	// The value should match a phase pin label (from phaseInputs) within the same subsystem
+	ReferenceSync string `yaml:"referenceSync,omitempty"`
 }
 
 // PhaseAdjustment represents phase adjustment that must be applied to the input or the output pin
@@ -466,17 +470,25 @@ func (cc *ClockChain) Validate() error {
 
 		// Validate pin configs
 		allPinConfigs := make(map[string]PinConfig)
+		phaseLabels := make(map[string]struct{})
+		freqInputLabels := make(map[string]struct{})
+		freqOutputLabels := make(map[string]struct{})
+
 		for label, config := range subsystem.DPLL.PhaseInputs {
 			allPinConfigs[label] = config
+			phaseLabels[label] = struct{}{}
 		}
 		for label, config := range subsystem.DPLL.PhaseOutputs {
 			allPinConfigs[label] = config
+			phaseLabels[label] = struct{}{}
 		}
 		for label, config := range subsystem.DPLL.FrequencyInputs {
 			allPinConfigs[label] = config
+			freqInputLabels[label] = struct{}{}
 		}
 		for label, config := range subsystem.DPLL.FrequencyOutputs {
 			allPinConfigs[label] = config
+			freqOutputLabels[label] = struct{}{}
 		}
 
 		for label, config := range allPinConfigs {
@@ -488,6 +500,20 @@ func (cc *ClockChain) Validate() error {
 			if config.SyncTechnologyConfigName != "" && !esyncNames[config.SyncTechnologyConfigName] && !refsyncNames[config.SyncTechnologyConfigName] {
 				return fmt.Errorf("referenced sync technology config %s not found in subsystem %s, pin %s",
 					config.SyncTechnologyConfigName, subsystem.Name, label)
+			}
+
+			// Validate referenceSync semantics: only allowed on frequency INPUT pins and must reference an existing phase pin
+			if config.ReferenceSync != "" {
+				if _, isFreqInput := freqInputLabels[label]; !isFreqInput {
+					if _, isFreqOutput := freqOutputLabels[label]; isFreqOutput {
+						return fmt.Errorf("referenceSync is not supported on frequency output pin %s in subsystem %s", label, subsystem.Name)
+					}
+					return fmt.Errorf("referenceSync specified on non-frequency-input pin %s in subsystem %s", label, subsystem.Name)
+				}
+				if _, exists := phaseLabels[config.ReferenceSync]; !exists {
+					return fmt.Errorf("referenceSync '%s' not found among phase pins in subsystem %s (referenced by %s)",
+						config.ReferenceSync, subsystem.Name, label)
+				}
 			}
 		}
 	}
