@@ -27,7 +27,7 @@ structure:
         frequency: 1
     phaseOutputs:
       REF_SMA1:
-        syncTechnologyConfigName: "10MHz-1PPS"
+        esyncConfigName: "10MHz-1PPS"
         connector: SMA1
 
 - name: "Follower using alias"
@@ -38,7 +38,7 @@ structure:
     clockId: "FOL1"
     phaseInputs:
       SMA1:
-        syncTechnologyConfigName: "10MHz-1PPS"
+        esyncConfigName: "10MHz-1PPS"
         connector: SMA1
     frequencyInputs:
       REF1:

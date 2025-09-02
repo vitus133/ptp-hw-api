@@ -261,27 +261,16 @@ components:
         connector:
           type: string
           description: |
-            Connector identifier on the device (e.g., "SMA1", "U.FL2"), Optional. 
+            Connector identifier on the device (e.g., "SMA1", "U.FL2"), Optional.
             Defines the physical connector this pin is statically or dynamically routed to.
-            Used by the hardware plugin software to configure connector logic, if present 
+            Used by the hardware plugin software to configure connector logic, if present
           pattern: '^[a-zA-Z0-9_-]+$'
           example: "SMA1"
-        
+
         phaseAdjustment:
           $ref: '#/components/schemas/PhaseAdjustment'
           description: Optional phase adjustment in picoseconds
-        
-        frequency:
-          type: number
-          minimum: 0
-          default: 1
-          description: Frequency value in Hz (for frequency pins) or phase reference frequency (for phase pins, defaults to 1 PPS)
-          example: 10000000
-        
-        syncTechnologyConfigName:
-          type: string
-          description: Optional eSync or ref-sync configuration name (defined in CommonDefinitions)
-          
+
         description:
           type: string
           description: Optional description for this pin configuration
@@ -292,10 +281,33 @@ components:
             Applies only to frequency input pins. The value must be a phase pin label within the same
             subsystem (from phaseInputs or phaseOutputs) that this frequency input pin references for
             phase pairing. Not supported on frequency output pins.
+      oneOf:
+        - title: "Frequency-based configuration"
+          properties:
+            frequency:
+              type: number
+              minimum: 0
+              default: 1
+              description: Frequency value in Hz (for frequency pins) or phase reference frequency (for phase pins, defaults to 1 PPS)
+              example: 10000000
+          not:
+            required: ["esyncConfigName"]
+        - title: "eSync-based configuration"
+          properties:
+            esyncConfigName:
+              type: string
+              description: eSync configuration name (defined in CommonDefinitions)
+          not:
+            required: ["frequency"]
+        - title: "Basic configuration (neither frequency nor eSync)"
+          not:
+            anyOf:
+              - required: ["frequency"]
+              - required: ["esyncConfigName"]
       description: |
-        Pin configuration for DPLL phase or frequency signals in a dictionary format 
-        (boardLabel is the key). 
-        The frequency and eSync should not be configured together.
+        Pin configuration for DPLL phase or frequency signals in a dictionary format
+        (boardLabel is the key).
+        Exactly one of: frequency, esyncConfigName, or neither must be specified.
 
     ESyncConfig:
       type: object

@@ -233,7 +233,7 @@ type Ethernet struct {
 }
 
 // PinConfig represents pin configuration for DPLL phase or frequency signals in a dictionary format
-// (boardLabel is the key). The frequency and syncTechnologyConfigName properties are mutually exclusive.
+// (boardLabel is the key). The frequency and esyncConfigName properties are mutually exclusive.
 type PinConfig struct {
 	// Connector is an optional identifier on the device (e.g., "SMA1", "U.FL2").
 	// Defines the physical connector this pin is statically or dynamically routed to.
@@ -244,13 +244,12 @@ type PinConfig struct {
 	PhaseAdjustment *PhaseAdjustment `yaml:"phaseAdjustment,omitempty"`
 
 	// Frequency is the frequency value in Hz (for frequency pins) or phase reference frequency
-	// (for phase pins, defaults to 1 PPS). Mutually exclusive with syncTechnologyConfigName.
+	// (for phase pins, defaults to 1 PPS). Mutually exclusive with esyncConfigName.
 	Frequency *float64 `yaml:"frequency,omitempty"`
 
-	// SyncTechnologyConfigName is an optional synchronization technology configuration name
-	// (defined in CommonDefinitions). It can refer to either an eSync or a ref-sync definition.
+	// ESyncConfigName is an optional eSync configuration name (defined in CommonDefinitions).
 	// Mutually exclusive with frequency.
-	SyncTechnologyConfigName string `yaml:"syncTechnologyConfigName,omitempty"`
+	ESyncConfigName string `yaml:"esyncConfigName,omitempty"`
 
 	// Description is an optional description for this pin configuration
 	Description string `yaml:"description,omitempty"`
@@ -390,10 +389,10 @@ func (cc *ClockChain) ResolveClockAliases() error {
 	return nil
 }
 
-// ValidatePinConfig ensures frequency and syncTechnologyConfigName are mutually exclusive
+// ValidatePinConfig ensures frequency and esyncConfigName are mutually exclusive
 func (pc *PinConfig) Validate() error {
-	if pc.Frequency != nil && pc.SyncTechnologyConfigName != "" {
-		return fmt.Errorf("frequency and syncTechnologyConfigName are mutually exclusive")
+	if pc.Frequency != nil && pc.ESyncConfigName != "" {
+		return fmt.Errorf("frequency and esyncConfigName are mutually exclusive")
 	}
 
 	if pc.Connector != "" {
@@ -496,10 +495,10 @@ func (cc *ClockChain) Validate() error {
 				return fmt.Errorf("invalid pin config %s in subsystem %s: %w", label, subsystem.Name, err)
 			}
 
-			// Check if referenced sync technology config exists (either eSync or ref-sync)
-			if config.SyncTechnologyConfigName != "" && !esyncNames[config.SyncTechnologyConfigName] && !refsyncNames[config.SyncTechnologyConfigName] {
-				return fmt.Errorf("referenced sync technology config %s not found in subsystem %s, pin %s",
-					config.SyncTechnologyConfigName, subsystem.Name, label)
+			// Check if referenced eSync config exists
+			if config.ESyncConfigName != "" && !esyncNames[config.ESyncConfigName] {
+				return fmt.Errorf("referenced eSync config %s not found in subsystem %s, pin %s",
+					config.ESyncConfigName, subsystem.Name, label)
 			}
 
 			// Validate referenceSync semantics: only allowed on frequency INPUT pins and must reference an existing phase pin

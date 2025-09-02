@@ -113,7 +113,7 @@ structure:
         description: "From Ethernet SDP: no ESync, no compensation"
       REF2:
         connector: SMA2
-        syncTechnologyConfigName: esync1
+        esyncConfigName: esync1
         phaseAdjustment:
           internal: 1323
           external: 20000
@@ -128,7 +128,7 @@ structure:
         description: "to Ethernet SDP in case of holdover"
       OUT2:
         connector: SMA2
-        syncTechnologyConfigName: esync1
+        esyncConfigName: esync1
         phaseAdjustment:
           internal: 2321
         description: "To Subsystem2 when boundary clock is up and GNSS is down"
@@ -160,7 +160,7 @@ structure:
       REF2:
         connector: SMA4
         description: "Input from subsystem 1 when operating as a boundary clock"
-        syncTechnologyConfigName: esync1
+        esyncConfigName: esync1
         phaseAdjustment:
           internal: 2323
           external: 20000
@@ -169,7 +169,7 @@ structure:
       OUT2:
         connector: SMA4
         description: "Output to subsystem 1 when operating as a grandmaster"
-        syncTechnologyConfigName: esync1
+        esyncConfigName: esync1
         phaseAdjustment:
           internal: 3232
           description: "From OUT2 to MUX to SMA4"

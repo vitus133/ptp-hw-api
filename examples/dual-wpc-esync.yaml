@@ -26,7 +26,7 @@ structure:
           internal: 7000
     phaseOutputs:
       REF_SMA1:
-        syncTechnologyConfigName: "10MHz-1PPS"
+        esyncConfigName: "10MHz-1PPS"
         # This will be used by the plugin to configure the MUX logic
         connector: SMA1  
         phaseAdjustment:
@@ -42,5 +42,5 @@ structure:
     clockId: "0xc7cc7cfffe001122"
     phaseInputs:
       SMA1:
-        syncTechnologyConfigName: "10MHz-1PPS"
+        esyncConfigName: "10MHz-1PPS"
         connector: SMA1        
