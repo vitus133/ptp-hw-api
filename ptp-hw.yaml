@@ -17,6 +17,25 @@ components:
             they can be referenced in the relevant entities by name, to avoid multiple copies
           type: object
           properties:
+            clockIdentifiers:
+              type: array
+              items:
+                type: object
+                required:
+                  - alias
+                  - clockId
+                properties:
+                  alias:
+                    type: string
+                    description: Human-friendly alias for a clock ID
+                    pattern: '^[a-zA-Z0-9_-]+$'
+                  clockId:
+                    type: string
+                    description: Clock ID in decimal or hex format
+                    pattern: '(?:(0[xX][0-9a-fA-F]+)|([0-9]))'
+                  description:
+                    type: string
+                    description: Optional description for this mapping
             refSyncDefinitions:
               type: array
               items:

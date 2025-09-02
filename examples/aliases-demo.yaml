@@ -1,0 +1,69 @@
+commonDefinitions:
+  # Clock aliases to simplify configs
+  clockIdentifiers:
+  - alias: "GM1"
+    clockId: "0x112233fffe445566"
+    description: "Leader DPLL"
+  - alias: "FOL1"
+    clockId: "0xc7cc7cfffe001122"
+
+  # Optional eSync definition used by pins below
+  eSyncDefinitions:
+  - name: "10MHz-1PPS"
+    esyncConfig:
+      transferFrequency: 10000000
+      embeddedSyncFrequency: 1
+      dutyCyclePct: 25
+
+structure:
+- name: "Leader using alias"
+  hardwarePlugin: "e810"
+  ethernet:
+  - ports: ["ens4f0"]
+  dpll:
+    clockId: "GM1"  # using alias instead of raw clock ID
+    phaseInputs:
+      GNSS_1PPS:
+        frequency: 1
+    phaseOutputs:
+      REF_SMA1:
+        syncTechnologyConfigName: "10MHz-1PPS"
+        connector: SMA1
+
+- name: "Follower using alias"
+  hardwarePlugin: "e810"
+  ethernet:
+  - ports: ["ens7f0"]
+  dpll:
+    clockId: "FOL1"
+    phaseInputs:
+      SMA1:
+        syncTechnologyConfigName: "10MHz-1PPS"
+        connector: SMA1
+
+behavior:
+  sources:
+  - name: GNSS
+    clockId: "GM1"   # alias resolved at runtime
+    sourceType: "gnss"
+    boardLabel: "GNSS_1PPS"
+
+  conditions:
+  - name: "Default (plugin-driven)"
+    sources:
+    - sourceName: "Default on profile (re)load"
+      conditionType: "default"
+    desiredStates: []  # plugin defaults will be merged here
+
+  - name: "GNSS Locked on Leader"
+    sources:
+    - sourceName: "GNSS"
+      conditionType: "locked"
+    desiredStates:
+    - clockId: "GM1"
+      boardLabel: "GNSS_1PPS"
+      eec:
+        priority: 0
+      pps:
+        priority: 0
+

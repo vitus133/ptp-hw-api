@@ -70,6 +70,14 @@ The tool provides:
 ```yaml
 # Optional: Shared definitions for reuse
 commonDefinitions:
+  # Optional: Define aliases for clock IDs to simplify configs
+  clockIdentifiers:
+  - alias: "GM1"
+    clockId: "0x112233fffe445566"
+    description: "Leader DPLL"
+  - alias: "FOL1"
+    clockId: "0xc7cc7cfffe001122"
+  
   eSyncDefinitions:
   - name: "10MHz-1PPS"
     esyncConfig:
@@ -84,7 +92,7 @@ structure:
   ethernet:
   - ports: ["ens4f0"]
   dpll: 
-    clockId: "0x112233fffe445566"
+    clockId: "GM1"  # using alias instead of the raw clock ID
     phaseInputs:
       GNSS_1PPS:
         frequency: 1
@@ -94,7 +102,7 @@ structure:
 behavior:
   sources:
   - name: "PTP"
-    clockId: "0x112233fffe445566"
+    clockId: "GM1"
     sourceType: "ptpTimeReceiver"
     boardLabel: "CVL_SDP22"
   
@@ -104,7 +112,7 @@ behavior:
     - sourceName: "Default on profile (re)load"
       conditionType: "default"
     desiredStates:
-    - clockId: "0x112233fffe445566"
+    - clockId: "GM1"
       boardLabel: "GNSS_1PPS"
       eec:
         priority: 0

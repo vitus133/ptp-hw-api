@@ -46,6 +46,9 @@ type CommonDefinitions struct {
 	// A ref-sync configuration typically ties a reference sync definition to a specific
 	// related pin or board label.
 	RefSyncDefinitions []RefSyncDefinition `yaml:"refSyncDefinitions,omitempty"`
+
+	// ClockIdentifiers defines aliases for clock IDs to simplify configuration files
+	ClockIdentifiers []ClockIdentifier `yaml:"clockIdentifiers,omitempty"`
 }
 
 // ESyncDefinition defines a named eSync configuration that can be referenced by name from pin configurations.
@@ -66,6 +69,18 @@ type RefSyncDefinition struct {
 
 	// RelatedPinBoardLabel is an optional label for a related pin/board
 	RelatedPinBoardLabel string `yaml:"relatedPinBoardLabel,omitempty"`
+}
+
+// ClockIdentifier defines a mapping between a human-friendly alias and a clock ID
+type ClockIdentifier struct {
+	// Alias is the short human-friendly identifier
+	Alias string `yaml:"alias"`
+
+	// ClockID is the actual clock ID (decimal or hex)
+	ClockID string `yaml:"clockId"`
+
+	// Description is optional context for the mapping
+	Description string `yaml:"description,omitempty"`
 }
 
 // ESyncConfig represents eSync feature configuration.
@@ -280,6 +295,94 @@ func ValidateAlphanumDash(value string) error {
 	if !pattern.MatchString(value) {
 		return fmt.Errorf("value must contain only alphanumeric characters, dashes, and underscores: %s", value)
 	}
+	return nil
+}
+
+// BuildClockAliasMap constructs a mapping from alias to clock ID and validates entries
+func (cc *ClockChain) BuildClockAliasMap() (map[string]string, error) {
+	aliasToClock := make(map[string]string)
+	if cc.CommonDefinitions == nil {
+		return aliasToClock, nil
+	}
+
+	for _, ident := range cc.CommonDefinitions.ClockIdentifiers {
+		if ident.Alias == "" {
+			return nil, fmt.Errorf("clockIdentifiers: alias must not be empty")
+		}
+		if err := ValidateAlphanumDash(ident.Alias); err != nil {
+			return nil, fmt.Errorf("clockIdentifiers: invalid alias '%s': %w", ident.Alias, err)
+		}
+		if err := ValidateClockID(ident.ClockID); err != nil {
+			return nil, fmt.Errorf("clockIdentifiers: alias '%s' has invalid clockId: %w", ident.Alias, err)
+		}
+		if _, exists := aliasToClock[ident.Alias]; exists {
+			return nil, fmt.Errorf("clockIdentifiers: duplicate alias '%s'", ident.Alias)
+		}
+		aliasToClock[ident.Alias] = ident.ClockID
+	}
+
+	return aliasToClock, nil
+}
+
+// resolveClockIDValue returns a validated clock ID string. If the input is not a valid
+// clock ID, it will try to resolve it as an alias using aliasToClock map.
+func resolveClockIDValue(value string, aliasToClock map[string]string) (string, error) {
+	if value == "" {
+		return value, nil
+	}
+	if err := ValidateClockID(value); err == nil {
+		return value, nil
+	}
+	if resolved, ok := aliasToClock[value]; ok {
+		return resolved, nil
+	}
+	return "", fmt.Errorf("value '%s' is neither a valid clock ID nor a known alias", value)
+}
+
+// ResolveClockAliases walks the configuration and replaces any clock alias usages
+// with their corresponding clock IDs. This should be called early in the program
+// lifecycle before merges and validation.
+func (cc *ClockChain) ResolveClockAliases() error {
+	aliasToClock, err := cc.BuildClockAliasMap()
+	if err != nil {
+		return err
+	}
+
+	// Resolve DPLL clock IDs
+	for si := range cc.Structure {
+		if cc.Structure[si].DPLL.ClockID != "" {
+			resolved, err := resolveClockIDValue(cc.Structure[si].DPLL.ClockID, aliasToClock)
+			if err != nil {
+				return fmt.Errorf("structure[%d] DPLL.clockId: %w", si, err)
+			}
+			cc.Structure[si].DPLL.ClockID = resolved
+		}
+	}
+
+	if cc.Behavior == nil {
+		return nil
+	}
+
+	// Resolve source clock IDs
+	for i := range cc.Behavior.Sources {
+		resolved, err := resolveClockIDValue(cc.Behavior.Sources[i].ClockID, aliasToClock)
+		if err != nil {
+			return fmt.Errorf("behavior.sources[%d].clockId: %w", i, err)
+		}
+		cc.Behavior.Sources[i].ClockID = resolved
+	}
+
+	// Resolve desired state clock IDs
+	for ci := range cc.Behavior.Conditions {
+		for di := range cc.Behavior.Conditions[ci].DesiredStates {
+			resolved, err := resolveClockIDValue(cc.Behavior.Conditions[ci].DesiredStates[di].ClockID, aliasToClock)
+			if err != nil {
+				return fmt.Errorf("behavior.conditions[%d].desiredStates[%d].clockId: %w", ci, di, err)
+			}
+			cc.Behavior.Conditions[ci].DesiredStates[di].ClockID = resolved
+		}
+	}
+
 	return nil
 }
 

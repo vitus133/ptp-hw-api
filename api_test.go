@@ -82,7 +82,8 @@ structure:
 		t.Fatalf("YAML parsing failed: %v", err)
 	}
 
-	// Test basic validation
+	// Resolve aliases then test basic validation
+	_ = config.ResolveClockAliases()
 	err = config.Validate()
 	if err != nil {
 		t.Logf("⚠️  Validation warning: %v", err)
@@ -197,6 +198,12 @@ func testExampleFile(t *testing.T, filePath string) {
 		return // Skip further testing for this file
 	}
 	t.Logf("✅ YAML parsing successful for %s", fileName)
+
+	// Resolve clock aliases if present
+	if err := config.ResolveClockAliases(); err != nil {
+		t.Logf("⚠️  Alias resolution failed for %s: %v", fileName, err)
+		// Continue to validation to surface issues but don't fail the whole test
+	}
 
 	// Log parsed structure info
 	t.Logf("   📊 Parsed %d subsystems", len(config.Structure))

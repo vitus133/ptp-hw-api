@@ -42,6 +42,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Resolve clock aliases early
+	if err := config.ResolveClockAliases(); err != nil {
+		fmt.Printf("Error resolving clock aliases: %v\n", err)
+		os.Exit(1)
+	}
+
 	// Load hardware plugins and apply defaults
 	pluginManager, err := NewPluginManager("plugins")
 	if err != nil {
