@@ -13,7 +13,7 @@ var Version = "dev"
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("PTP Configuration Parser")
+		fmt.Println("PTP Hardware Configuration Parser")
 		fmt.Printf("Version: %s\n", Version)
 		fmt.Println("Usage: go run . <config-file>")
 		fmt.Println("       go run . --version")
